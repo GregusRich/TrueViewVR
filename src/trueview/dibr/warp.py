@@ -93,6 +93,23 @@ def warp_depth_right_to_left(depth_vis: np.ndarray, disparity_px: np.ndarray):
     return left_depth, holes
 
 
+import cv2
+import numpy as np
+
+def protect_foreground_mask(depth_vis: np.ndarray, near_pct: float = 0.86, grow: int = 1) -> np.ndarray:
+    """
+    Binary mask (255=foreground) for the nearest ~near_pct pixels.
+    We dilate slightly so the edge itself is protected from inpaint.
+    """
+    d = depth_vis.astype(np.float32)
+    t = np.quantile(d, near_pct)
+    fg = (d >= t).astype(np.uint8) * 255
+    if grow > 0:
+        k = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2*grow + 1, 2*grow + 1))
+        fg = cv2.dilate(fg, k, iterations=1)
+    return fg
+
+
 def inpaint_holes(left_draft_bgr, hole_mask_u8, radius=3, dilate=3, method="telea"):
     mask = hole_mask_u8.copy().astype(np.uint8)
     if dilate > 0:

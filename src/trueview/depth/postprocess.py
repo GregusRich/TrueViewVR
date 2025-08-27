@@ -27,3 +27,5 @@ def refine_depth_edge_aware(depth_vis: np.ndarray,
         w = np.clip(mag * 4.0, 0.0, 1.0)  # weight near edges
         out = (1.0 - w) * out + w * d
     return np.clip(out, 0.0, 1.0)
+
+

@@ -5,8 +5,11 @@ import cv2
 import numpy as np
 from PIL import Image
 import torch
-
+from trueview.depth.postprocess import refine_depth_edge_aware
 from trueview.depth.midas_infer import load_midas, predict_depth
+from trueview.dibr.warp import protect_foreground_mask
+
+
 from trueview.dibr.warp import (
     depth_to_disparity,                 # quantile mapping
     depth_to_disparity_calibrated,      # calibrated mapping (make stereo “sensitive”)
@@ -145,8 +148,25 @@ def main():
     print(f"[Warp] mode={args.warp}, holes={(hole_mask > 0).sum()} px")
 
     # Seam-aware mask to remove the ghost edge (holes + narrow band)
-    seam_mask = make_seam_mask(hole_mask, right_bgr, left_draft_bgr,
-                               band_px=args.seam_band, diff_thresh=args.seam_thresh)
+    # Seam-aware mask = holes + small band around stretched/ghost edges
+    seam_mask = make_seam_mask(
+        hole_mask, right_bgr, left_draft_bgr,
+        band_px=args.seam_band, diff_thresh=args.seam_thresh
+    )
+
+    # --- PROTECT FOREGROUND: do NOT repaint near objects (e.g., candle) ---
+    # Build a mask of the closest ~14% pixels and dilate slightly.
+    fg_keep = protect_foreground_mask(depth_vis, near_pct=0.86, grow=1)
+    # Remove foreground from repaint mask
+    seam_mask = cv2.bitwise_and(seam_mask, cv2.bitwise_not(fg_keep))
+
+    # (optional debug saves)
+    cv2.imwrite(str(outdir / f"{stem}_mask_foreground.png"), fg_keep)
+    dbg = right_bgr.copy()
+    dbg[seam_mask > 0] = (0.3 * dbg[seam_mask > 0] + 0.7 * np.array([0, 0, 255])).astype(np.uint8)  # red=repaint
+    cv2.imwrite(str(outdir / f"{stem}_mask_repaint.png"), dbg)
+
+    # final mask used by inpaint/cleanup
     cv2.imwrite(str(outdir / f"{stem}_mask_final.png"), seam_mask)
 
     # Fill
