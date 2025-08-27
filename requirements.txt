@@ -1,0 +1,12 @@
+torch
+torchvision
+opencv-python
+numpy
+Pillow
+timm
+# optional (for M2 cleanup):
+diffusers>=0.26.0
+transformers
+accelerate
+safetensors
+tqdm
