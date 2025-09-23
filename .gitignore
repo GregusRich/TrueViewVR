@@ -1,0 +1,30 @@
+@'
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# IDE
+.idea/
+.vscode/
+
+# Build/egg
+*.egg-info/
+
+# Data / outputs / media
+data/output/
+data/tmp/
+*.mp4
+*.mov
+*.avi
+*.mkv
+*.webm
+
+# HF/model caches
+.cache/
+huggingface/
+*.safetensors
+*.ckpt
+'@ | Out-File -Encoding utf8 .gitignore

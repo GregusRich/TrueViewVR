@@ -4,6 +4,12 @@ opencv-python
 numpy
 Pillow
 timm
+transformers>=4.40
+accelerate
+timm>=0.9.2
+torch
+torchvision  # your existing pinned CUDA build is fine
+
 # optional (for M2 cleanup):
 diffusers>=0.26.0
 transformers
