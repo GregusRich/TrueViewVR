@@ -22,5 +22,6 @@ Thumbs.db
 
 # Project artifacts
 data/output/
+data/input/
 data/tmp/
 **/.cache/
